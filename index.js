@@ -5,10 +5,14 @@ require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const allowedOrigins = [
+  'http://localhost:5173',
+  'https://lucky-drawfrontend-git-main-hutruon139s-projects.vercel.app',
+];
 
 // ✅ CORS middleware
 app.use(cors({
-  origin: ['http://localhost:5173'], // use only the frontend URL you're testing from
+  origin: allowedOrigins,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Requested-With'],
   credentials: true
