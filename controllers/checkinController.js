@@ -2,18 +2,18 @@ const Family = require('../models/Family');
 
 exports.checkinFamily = async (req, res) => {
   try {
-    const { name, phone, email } = req.body;
+    const { name, phone: employeeId } = req.body; // phone field contains employeeId from frontend
     
-    // Check if family already exists
-    const existingFamily = await Family.findOne({ name, phone });
+    // Check if employee already exists
+    const existingFamily = await Family.findOne({ employeeId });
     if (existingFamily) {
-      return res.status(400).json({ message: 'Gia đình này đã check-in rồi!' });
+      return res.status(400).json({ message: 'Nhân viên này đã check-in rồi!' });
     }
     
-    const newFamily = new Family({ name, phone, email });
+    const newFamily = new Family({ name, employeeId });
     await newFamily.save();
     res.status(201).json({ message: 'Check-in thành công', data: newFamily });
   } catch (err) {
     res.status(500).json({ message: 'Lỗi check-in', error: err.message });
   }
-};
+};  

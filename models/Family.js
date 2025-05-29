@@ -7,15 +7,10 @@ const FamilySchema = new mongoose.Schema({
     required: true,
     trim: true
   },
-  phone: { 
+  employeeId: { 
     type: String, 
     required: true,
     trim: true
-  },
-  email: { 
-    type: String,
-    trim: true,
-    lowercase: true
   },
   
   // Timestamps
@@ -67,7 +62,8 @@ const FamilySchema = new mongoose.Schema({
 });
 
 // Indexes for better performance
-FamilySchema.index({ name: 1, phone: 1 });
+FamilySchema.index({ name: 1, employeeId: 1 });
+FamilySchema.index({ employeeId: 1 }, { unique: true }); // Employee ID should be unique
 FamilySchema.index({ spinResult: 1 });
 FamilySchema.index({ checkInTime: -1 });
 
