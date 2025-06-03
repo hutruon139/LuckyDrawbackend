@@ -112,3 +112,78 @@ exports.markPrizeAwarded = async (req, res) => {
     res.status(500).json({ message: 'Lỗi cập nhật trao giải', error: err.message });
   }
 };
+
+exports.assignSpinResult = async (req, res) => {
+  try {
+    const familyId = req.params.id;
+    
+    // Prize limits
+    const limits = { group_1: 5, group_2: 45, group_3: 55, group_4: 15 };
+    
+    // Get current counts atomically
+    const counts = await Promise.all([
+      Family.countDocuments({ spinResult: 'group_1' }),
+      Family.countDocuments({ spinResult: 'group_2' }),
+      Family.countDocuments({ spinResult: 'group_3' }),
+      Family.countDocuments({ spinResult: 'group_4' })
+    ]);
+    
+    const currentCounts = {
+      group_1: counts[0],
+      group_2: counts[1], 
+      group_3: counts[2],
+      group_4: counts[3]
+    };
+    
+    // 🎯 RIGGED SELECTION WITH WEIGHTS
+    const availableGroups = [];
+    
+    // Add groups with remaining slots, with bias toward filling quotas
+    if (currentCounts.group_1 < limits.group_1) {
+      availableGroups.push(...Array(2).fill('group_1')); // Lower weight for prizes
+    }
+    if (currentCounts.group_2 < limits.group_2) {
+      availableGroups.push(...Array(10).fill('group_2')); // Medium weight
+    }
+    if (currentCounts.group_3 < limits.group_3) {
+      availableGroups.push(...Array(15).fill('group_3')); // Higher weight (most common)
+    }
+    if (currentCounts.group_4 < limits.group_4) {
+      availableGroups.push(...Array(5).fill('group_4')); // Medium weight
+    }
+    
+    // Fallback if all full
+    const selectedGroup = availableGroups.length > 0 
+      ? availableGroups[Math.floor(Math.random() * availableGroups.length)]
+      : 'group_4';
+    
+    const challenges = selectedGroup === 'group_1' ? 0 
+      : selectedGroup === 'group_2' ? 1
+      : selectedGroup === 'group_3' ? 2 : 3;
+    
+    // Atomically update the family
+    const family = await Family.findByIdAndUpdate(
+      familyId,
+      { 
+        spinResult: selectedGroup,
+        requiredChallenges: challenges,
+        prizeEligible: challenges === 0
+      },
+      { new: true }
+    );
+    
+    if (!family) {
+      return res.status(404).json({ message: 'Family not found' });
+    }
+    
+    res.json({ 
+      message: 'Spin result assigned',
+      data: family,
+      group: selectedGroup,
+      challenges: challenges
+    });
+    
+  } catch (err) {
+    res.status(500).json({ message: 'Error assigning spin result', error: err.message });
+  }
+};

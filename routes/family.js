@@ -7,7 +7,8 @@ const {
   updateChallengeProgress,
   deleteFamily, 
   markPrizeAwarded,
-  resetFamily 
+  resetFamily,
+  assignSpinResult 
 } = require('../controllers/familyController');
 
 router.get('/', getAllFamilies);
@@ -17,5 +18,6 @@ router.patch('/:id/challenge', updateChallengeProgress);  // For challenge updat
 router.delete('/:id', deleteFamily);
 router.patch('/:id/reset', resetFamily);
 router.patch('/:id/prize', markPrizeAwarded); 
+router.patch('/:id/assign-spin', assignSpinResult);
 
 module.exports = router;
